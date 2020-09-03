@@ -1,47 +1,46 @@
 # **Finding Lane Lines on the Road** 
 
-## Writeup Template
-
-### You can use this file as a template for your writeup if you want to submit it as a markdown file. But feel free to use some other method and submit a pdf if you prefer.
-
----
-
-**Finding Lane Lines on the Road**
-
-The goals / steps of this project are the following:
-* Make a pipeline that finds lane lines on the road
-* Reflect on your work in a written report
-
-
-[//]: # (Image References)
-
-[image1]: ./examples/grayscale.jpg "Grayscale"
-
----
-
 ### Reflection
 
-### 1. Describe your pipeline. As part of the description, explain how you modified the draw_lines() function.
+### 1. Pipeline
 
-My pipeline consisted of 5 steps. First, I converted the images to grayscale, then I .... 
+The pipeline is defined by this function:
+```python
+def detect_lane_lines(image):
+    return run_pipeline(image, [
+        apply_grayscale,
+        apply_gaussian_blur,
+        apply_canny_edge_detection,
+        apply_region_of_interest,
+        apply_extrapolated_hough_lines
+    ])
+```
 
-In order to draw a single line on the left and right lanes, I modified the draw_lines() function by ...
+- Convert to grayscale to be able to apply Canny Edge Detection later
+- Apply Gaussian Blur to reduce noise
+- Apply Canny Edge Detection to get only the edges in the image
+- Remove/Ignore everything that is outside of a defined region of interest
+- Apply extrapolated Hough lines function
+  - Apply Hough lines to get the lines of the image
+  - Calculate the slope of those lines and split them in two groups: positive and negative
+  - Get the ~~average~~ median positive slope and the ~~average~~ median negative slope
+  - Get the two lines that have the closest slope to the average ones
+  - Extrapolate those lines by calculating the X for a given hard-coded Y
+  - Draw these two lines over the original image
 
-If you'd like to include images to show how the pipeline works, here is how to include an image: 
 
-![alt text][image1]
+### 2. Shortcomings with the current pipeline
 
-
-### 2. Identify potential shortcomings with your current pipeline
-
-
-One potential shortcoming would be what would happen when ... 
-
-Another shortcoming could be ...
+- Lines are not detected if there is little contrast (this can be too dark or too bright scenarios)
+- If no lines are found, at some point there is a division by zero that breaks the pipeline
+- The drawn lines jitter a bit
+- The slope of the lines sometimes is not really good
+- It does not perform well with curves
+- I don't think it'll work with steep roads
 
 
 ### 3. Suggest possible improvements to your pipeline
 
-A possible improvement would be to ...
-
-Another potential improvement could be to ...
+- I could remove outliars of the list of slopes
+- I could try to reduce the contrast problem by transforming the color space to HSV and finding yellow/white colors
+- The jittering could be reduced by averaging with the previous frame
